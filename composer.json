@@ -1,0 +1,11 @@
+{
+    "name": "jd/cron",
+    "description": "Simple cron task runner",
+    "license": "MIT",
+    "require": {
+        "php": ">=5.3.0"
+    },
+    "autoload": {
+        "psr-4": {"Cron\\": "src/Cron"}
+    }
+}
