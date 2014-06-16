@@ -23,38 +23,17 @@ class CronCommand extends CommonCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         /** @var EntityManager $em */
-        $em = $this->getContainer()->get('doctrine')->getEntityManager();
+        $em = $this->getContainer()->get('doctrine')->getManager();
 
         $jobRepository = new JobRepository($em);
 
-        $expiredJobs = $jobRepository->findExpiredJobs();
-
-        foreach ($expiredJobs as $expiredJob) {
-            if (null !== $expiredJob->getRepeat()) {
-                $em->persist(new Log($expiredJob, true));
-            }
-
-            $em->remove($expiredJob);
-
-            $this->addLogLine(
-                sprintf(
-                    '%s > Expired Job %s - Due %s',
-                    date('Y-m-d H:i:s'),
-                    $expiredJob->getName(),
-                    $expiredJob->getExpires()->format('Y-m-d H:i:s')
-                )
-            );
-        }
-
-        $em->flush();
+        $this->removeExpiredJobs();
 
         $nextJobs = $jobRepository->findNextJobs(5);
 
         foreach ($nextJobs as $job) {
             if (null !== $job->getRepeat()) {
-                $repeatedJob = $this->getRepeatedJob($job);
-
-                $em->persist($repeatedJob);
+                $em->persist($this->getRepeatedJob($job));
                 $em->flush();
             }
 
@@ -70,7 +49,7 @@ class CronCommand extends CommonCommand
                 )
             );
 
-            $this->subCommand($output, $job->getScript());
+            $this->processCommand($output, $job->getScript());
         }
     }
 
@@ -82,7 +61,7 @@ class CronCommand extends CommonCommand
     private function getRepeatedJob(Job $originalJob) {
         $notBefore = null === $originalJob->getNotBefore()
             ? time()
-            : strtotime($originalJob->getNotBefore());
+            : $originalJob->getNotBefore()->getTimestamp();
 
         $delta = strtotime($originalJob->getRepeat(), $notBefore) - $notBefore;
 
@@ -94,15 +73,27 @@ class CronCommand extends CommonCommand
             $nextTime += $delta; // Crashing risk!
         }
 
-        $nextExpire = null !== $originalJob->getExpires()
-            ? $nextTime + abs(strtotime($notBefore) - strtotime($notBefore))
-            : null;
+        $nextTimeObject = new \DateTime();
+        $nextTimeObject->setTimestamp($nextTime);
+
+        if (null !== $originalJob->getExpires())  {
+            $nextExpire = new \DateTime();
+
+            // Expiring jobs
+            if (null === $originalJob->getNotBefore()) {
+                $nextExpire->setTimestamp($nextTime + abs($originalJob->getAdded()->getTimestamp() - $originalJob->getExpires()->getTimestamp()));
+            } else {
+                $nextExpire->setTimestamp($nextTime + abs($originalJob->getNotBefore()->getTimestamp() - $originalJob->getExpires()->getTimestamp()));
+            }
+        } else {
+            $nextExpire = null;
+        }
 
         return new Job(
             $originalJob->getName(),
             $originalJob->getScript(),
             $originalJob->getPriority(),
-            $notBefore,
+            $nextTimeObject,
             $nextExpire,
             $originalJob->getRepeat(),
             $originalJob->getLink()
@@ -116,6 +107,69 @@ class CronCommand extends CommonCommand
      */
     private function  addLogLine($line)
     {
+        // TODO: Change to log
+        
         echo $line . "\n";
+    }
+
+    /**
+     * Removes the jobs that have expired, creating a new one for the recurring ones
+     */
+    private function removeExpiredJobs()
+    {
+        /** @var EntityManager $em */
+        $em = $this->getContainer()->get('doctrine')->getManager();
+
+        $jobRepository = new JobRepository($em);
+
+        $expiredJobs = $jobRepository->findExpiredJobs();
+
+        foreach ($expiredJobs as $expiredJob) {
+            if (null !== $expiredJob->getRepeat()) {
+                $em->persist(new Log($expiredJob, true));
+                $em->persist($this->getRepeatedJob($expiredJob));
+            }
+
+            $em->remove($expiredJob);
+
+            $this->addLogLine(
+                sprintf(
+                    '%s > Expired Job %s - Due %s',
+                    date('Y-m-d H:i:s'),
+                    $expiredJob->getName(),
+                    $expiredJob->getExpires()->format('Y-m-d H:i:s')
+                )
+            );
+        }
+
+        $em->flush();
+    }
+
+    /**
+     * @param OutputInterface $output
+     * @param string          $script
+     */
+    private function processCommand(OutputInterface $output, $script)
+    {
+        if ('http' === substr($script, 0, 4)) {
+            $context = stream_context_create(
+                array(
+                    'http' => array(
+                        'timeout' => 20 * 60
+                    ),
+                    'https' => array(
+                        'timeout' => 20 * 60
+                    )
+                )
+            );
+
+            $lines = file($script, 0, $context);
+
+            foreach ($lines as $line) {
+                $this->addLogLine($line);
+            }
+        } else {
+            $this->subCommand($output, $script);
+        }
     }
 }

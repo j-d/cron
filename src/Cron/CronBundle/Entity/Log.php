@@ -7,7 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * Logs
  *
- * @ORM\Table(name="logs", indexes={@ORM\Index(name="link", columns={"link"})})
+ * @ORM\Table(name="cron_logs", indexes={@ORM\Index(name="link", columns={"link"})})
  * @ORM\Entity
  */
 class Log
@@ -29,25 +29,25 @@ class Log
     private $name;
 
     /**
-     * @var boolean
+     * @var int
      *
-     * @ORM\Column(name="priority", type="boolean", nullable=false)
+     * @ORM\Column(name="priority", type="integer", nullable=false)
      */
     private $priority;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="repeat", type="string", length=255, nullable=false)
+     * @ORM\Column(name="repeatAt", type="string", length=255, nullable=true)
      */
-    private $repeat;
+    private $repeat = null;
 
     /**
      * @var \DateTime
      *
      * @ORM\Column(name="due", type="datetime", nullable=true)
      */
-    private $due;
+    private $due = null;
 
     /**
      * @var \DateTime

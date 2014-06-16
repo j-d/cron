@@ -7,7 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * Jobs
  *
- * @ORM\Table(name="jobs", indexes={@ORM\Index(name="link", columns={"link"})})
+ * @ORM\Table(name="cron_jobs", indexes={@ORM\Index(name="link", columns={"link"})})
  * @ORM\Entity
  */
 class Job
@@ -42,25 +42,25 @@ class Job
     private $script;
 
     /**
-     * @var boolean
+     * @var int
      *
-     * @ORM\Column(name="priority", type="boolean", nullable=false)
+     * @ORM\Column(name="priority", type="integer", nullable=false)
      */
-    private $priority = static::PRIORITY_MEDIUM;
+    private $priority = self::PRIORITY_MEDIUM;
 
     /**
      * @var \DateTime
      *
      * @ORM\Column(name="added", type="datetime", nullable=false)
      */
-    private $added = 'CURRENT_TIMESTAMP';
+    private $added;
 
     /**
      * @var \DateTime
      *
      * @ORM\Column(name="notBefore", type="datetime", nullable=true)
      */
-    private $notBefore;
+    private $notBefore = null;
 
     /**
      * @var \DateTime
@@ -72,16 +72,16 @@ class Job
     /**
      * @var string
      *
-     * @ORM\Column(name="repeat", type="string", length=255, nullable=false)
+     * @ORM\Column(name="repeatAt", type="string", length=255, nullable=true)
      */
-    private $repeat = '';
+    private $repeat = null;
 
     /**
      * @var string
      *
      * @ORM\Column(name="link", type="string", length=255, nullable=true)
      */
-    private $link = '';
+    private $link = null;
 
     public function __construct($name, $script, $priority, $notBefore, $expires, $repeat, $link)
     {
@@ -92,6 +92,7 @@ class Job
         $this->expires   = $expires;
         $this->repeat    = $repeat;
         $this->link      = $link;
+        $this->added     = new \DateTime();
     }
 
     /**
@@ -207,7 +208,7 @@ class Job
     }
 
     /**
-     * @return boolean
+     * @return int
      */
     public function getPriority()
     {
@@ -227,9 +228,7 @@ class Job
      */
     public function getRepeat()
     {
-        return '' === $this->repeat
-            ? null
-            : $this->repeat;
+        return $this->repeat;
     }
 
     /**

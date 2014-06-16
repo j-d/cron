@@ -36,7 +36,7 @@ class JobRepository extends EntityRepository
 
         $query->setParameter('date', new \DateTime());
 
-        return $query->getArrayResult();
+        return $query->getResult();
     }
 
     /**
@@ -53,7 +53,7 @@ class JobRepository extends EntityRepository
             SELECT j'.'
             FROM CronBundle:Job j
             WHERE
-                j.expires < :date
+                j.expires > :now AND
                 j.notBefore IS NULL OR j.notBefore < :now
             ORDER BY
                 j.priority DESC,
@@ -64,8 +64,8 @@ class JobRepository extends EntityRepository
 
         $query->setParameter('now', new \DateTime());
 
-        $query->setMaxResults($limit);
+        $query->setMaxResults($maxResults);
 
-        return $query->getArrayResult();
+        return $query->getResult();
     }
 }
