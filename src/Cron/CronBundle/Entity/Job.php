@@ -12,11 +12,11 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Job
 {
-    const PRIORITY_LOW         = 1;
-    const PRIORITY_MEDIUM_LOW  = 2;
+    const PRIORITY_LOW         = 5;
+    const PRIORITY_MEDIUM_LOW  = 4;
     const PRIORITY_MEDIUM      = 3;
-    const PRIORITY_MEDIUM_HIGH = 4;
-    const PRIORITY_HIGH        = 5;
+    const PRIORITY_MEDIUM_HIGH = 2;
+    const PRIORITY_HIGH        = 1;
 
     /**
      * @var integer
@@ -83,7 +83,7 @@ class Job
      */
     private $link = null;
 
-    public function __construct($name, $script, $priority, $notBefore, $expires, $repeat, $link)
+    public function __construct($name, $script, $priority, $notBefore = null, $expires = null, $repeat = null, $link = null)
     {
         $this->name      = $name;
         $this->script    = $script;

@@ -108,7 +108,7 @@ class CronCommand extends CommonCommand
     private function  addLogLine($line)
     {
         // TODO: Change to log
-        
+
         echo $line . "\n";
     }
 
