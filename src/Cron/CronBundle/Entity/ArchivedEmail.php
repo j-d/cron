@@ -31,7 +31,7 @@ class ArchivedEmail
     /**
      * @var string
      *
-     * @ORM\Column(name="from", type="text", nullable=false)
+     * @ORM\Column(name="fromName", type="text", nullable=false)
      */
     private $from;
 
@@ -101,7 +101,7 @@ class ArchivedEmail
     /**
      * @var string
      *
-     * @ORM\Column(name="callback", type="text", nullable=false)
+     * @ORM\Column(name="callback", type="text", nullable=true)
      */
     private $callback;
 

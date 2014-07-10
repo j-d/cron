@@ -23,6 +23,17 @@ class ProcessEmailQueueCommand extends CommonCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        function right($string, $long) {
+            return substr($string,sizeof($string)-$long-1,$long);
+        }
+
+        function rightFrom($string, $ch) {
+            if (strpos($string, $ch) === false)
+                return $string;
+            else
+                return right($string,strlen($string)-strpos($string,$ch)-strlen($ch));
+        }
+
         /** @var EntityManager $em */
         $em = $this->getContainer()->get('doctrine')->getManager();
 
@@ -30,19 +41,27 @@ class ProcessEmailQueueCommand extends CommonCommand
 
         $pendingEmailRepository = new PendingEmailRepository($em);
 
+        $invalidEmails = $pendingEmailRepository->findBy(array('dest' => ''));
+
+        foreach ($invalidEmails as $invalidEmail) {
+            $em->remove($invalidEmail);
+        }
+
+        $em->flush();
+
         $nextEmails = $pendingEmailRepository->findNextEmails(5);
 
         foreach ($nextEmails as $email) {
             $mail = new PHPMailer();
 
-            $smtpConnectionDetails = System::getConfiguration()->getSMTPConnectionDetails();
+            $smtpConnectionDetails = System::getSystem()->getConfiguration()->getSMTPConnectionDetails();
 
             $mail->Priority = $email->getPriority();
             $mail->IsSMTP();
             $mail->Host     = $smtpConnectionDetails['host'];
             $mail->Port     = $smtpConnectionDetails['port'];
-            $mail->From     = $email->getFrom();
-            $mail->FromName = $email->getFromEmail();
+            $mail->From     = $email->getFromEmail();
+            $mail->FromName = $email->getFrom();
 
             if ($email->getDestination() != '') {
                 foreach (explode('|', $email->getDestination()) as $dest) {
@@ -122,10 +141,14 @@ class ProcessEmailQueueCommand extends CommonCommand
             $output->writeln(
                 sprintf(
                     '%s > Email sent Id: %s To: %s  ',
+                    date('Y-m-d H:i:s'),
                     $email->getId(),
                     $email->getDestination()
                 )
             );
+
+            $em->remove($email);
+            $em->flush();
         }
     }
 

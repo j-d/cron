@@ -53,8 +53,8 @@ class PendingEmailRepository extends EntityRepository
             SELECT e'.'
             FROM CronBundle:PendingEmail e
             WHERE
-                e.expires > :now AND
-                e.notBefore IS NULL OR e.notBefore < :now
+                (e.expires IS NULL OR e.expires > :now) AND
+                (e.notBefore IS NULL OR e.notBefore < :now)
             ORDER BY
                 e.priority DESC,
                 e.expires ASC,

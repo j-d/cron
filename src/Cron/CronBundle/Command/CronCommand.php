@@ -165,8 +165,10 @@ class CronCommand extends CommonCommand
 
             $lines = file($script, 0, $context);
 
-            foreach ($lines as $line) {
-                $this->addLogLine($line);
+            if (is_array($lines)) {
+                foreach ($lines as $line) {
+                    $this->addLogLine($line);
+                }
             }
         } else {
             $this->subCommand($output, $script);

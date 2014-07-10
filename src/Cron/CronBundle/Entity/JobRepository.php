@@ -53,8 +53,8 @@ class JobRepository extends EntityRepository
             SELECT j'.'
             FROM CronBundle:Job j
             WHERE
-                j.expires > :now AND
-                j.notBefore IS NULL OR j.notBefore < :now
+                (j.expires IS NULL OR j.expires > :now) AND
+                (j.notBefore IS NULL OR j.notBefore < :now)
             ORDER BY
                 j.priority DESC,
                 j.expires ASC,
