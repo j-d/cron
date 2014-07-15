@@ -28,9 +28,9 @@ class PendingEmail
     private $id;
 
     /**
-     * @var boolean
+     * @var int
      *
-     * @ORM\Column(name="priority", type="boolean", nullable=false)
+     * @ORM\Column(name="priority", type="integer", nullable=false)
      */
     private $priority = self::PRIORITY_MEDIUM;
 
@@ -266,7 +266,7 @@ class PendingEmail
     }
 
     /**
-     * @return boolean
+     * @return int
      */
     public function getPriority()
     {

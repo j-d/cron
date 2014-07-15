@@ -41,7 +41,7 @@ class ProcessEmailQueueCommand extends CommonCommand
 
         $pendingEmailRepository = new PendingEmailRepository($em);
 
-        $invalidEmails = $pendingEmailRepository->findBy(array('dest' => ''));
+        $invalidEmails = $pendingEmailRepository->findBy(array('destination' => ''));
 
         foreach ($invalidEmails as $invalidEmail) {
             $em->remove($invalidEmail);
@@ -56,7 +56,7 @@ class ProcessEmailQueueCommand extends CommonCommand
 
             $smtpConnectionDetails = System::getSystem()->getConfiguration()->getSMTPConnectionDetails();
 
-            $mail->Priority = $email->getPriority();
+            $mail->Priority = $email->getPriority() >= 4;
             $mail->IsSMTP();
             $mail->Host     = $smtpConnectionDetails['host'];
             $mail->Port     = $smtpConnectionDetails['port'];
