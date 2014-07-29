@@ -132,6 +132,13 @@ class PendingEmail
      */
     private $embedded;
 
+    /**
+     * @var int
+     *
+     * @ORM\Column(name="attempts", type="integer", nullable=true)
+     */
+    private $attempts = 0;
+
     public function __construct(
         $from,
         $fromEmail,
@@ -295,5 +302,18 @@ class PendingEmail
     public function getTextPlain()
     {
         return $this->textPlain;
+    }
+
+    public function increaseAttempts()
+    {
+        $this->attempts++;
+    }
+
+    /**
+     * @return int
+     */
+    public function getAttempts()
+    {
+        return $this->attempts;
     }
 }

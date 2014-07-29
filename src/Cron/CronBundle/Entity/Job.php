@@ -83,7 +83,7 @@ class Job
      */
     private $link = null;
 
-    public function __construct($name, $script, $priority, $notBefore, $expires, $repeat, $link)
+    public function __construct($name, $script, $priority, $notBefore = null, $expires = null, $repeat = null, $link = null)
     {
         $this->name      = $name;
         $this->script    = $script;

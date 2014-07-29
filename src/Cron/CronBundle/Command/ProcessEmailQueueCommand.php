@@ -104,7 +104,18 @@ class ProcessEmailQueueCommand extends CommonCommand
             $mail->AltBody = $email->getTextPlain();
 
             if (!$mail->Send()) {
-                die($mail->ErrorInfo);
+                echo $mail->ErrorInfo;
+
+                $email->increaseAttempts();
+
+                if ($email->getAttempts() < 1000) {
+                    $em->persist($email);
+                } else {
+                    $em->remove($email);
+                }
+
+                $em->flush();
+                continue;
             } else {
                 $em->persist(
                     new ArchivedEmail(
