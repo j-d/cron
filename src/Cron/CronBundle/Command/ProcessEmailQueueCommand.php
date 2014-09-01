@@ -21,19 +21,22 @@ class ProcessEmailQueueCommand extends CommonCommand
             ->setDescription('This command will process the email queue jobs');
     }
 
+    private function right($string, $long)
+    {
+        return substr($string, sizeof($string) - $long - 1, $long);
+    }
+
+    private function rightFrom($string, $ch)
+    {
+        if (strpos($string, $ch) === false) {
+            return $string;
+        } else {
+            return $this->right($string, strlen($string) - strpos($string, $ch) - strlen($ch));
+        }
+    }
+
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        function right($string, $long) {
-            return substr($string,sizeof($string)-$long-1,$long);
-        }
-
-        function rightFrom($string, $ch) {
-            if (strpos($string, $ch) === false)
-                return $string;
-            else
-                return right($string,strlen($string)-strpos($string,$ch)-strlen($ch));
-        }
-
         /** @var EntityManager $em */
         $em = $this->getContainer()->get('doctrine')->getManager();
 
@@ -84,7 +87,7 @@ class ProcessEmailQueueCommand extends CommonCommand
             if (null != $email->getAttachments()) {
                 foreach (explode('|', $email->getAttachments()) as $el) {
                     if (file_exists($el)) {
-                        $mail -> AddAttachment($el, rightFrom($el, 'emailTEMP_'));
+                        $mail -> AddAttachment($el, $this->rightFrom($el, 'emailTEMP_'));
                     }
                 }
             }
