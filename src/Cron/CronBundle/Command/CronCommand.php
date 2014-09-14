@@ -32,14 +32,17 @@ class CronCommand extends CommonCommand
         $nextJobs = $jobRepository->findNextJobs(5);
 
         foreach ($nextJobs as $job) {
+            $em->getConnection()->beginTransaction();
+
             if (null !== $job->getRepeat()) {
                 $em->persist($this->getRepeatedJob($job));
-                $em->flush();
             }
 
             $em->persist(new Log($job));
             $em->remove($job);
             $em->flush();
+
+            $em->getConnection()->commit();
 
             $this->addLogLine(
                 sprintf(
