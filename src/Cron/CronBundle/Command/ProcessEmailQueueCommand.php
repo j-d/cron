@@ -111,7 +111,7 @@ class ProcessEmailQueueCommand extends CommonCommand
 
                 $email->increaseAttempts();
 
-                if ($email->getAttempts() < 1000) {
+                if ($email->getAttempts() < 10) {
                     $em->persist($email);
                 } else {
                     $em->remove($email);
