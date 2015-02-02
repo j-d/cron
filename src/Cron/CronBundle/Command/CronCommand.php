@@ -174,7 +174,20 @@ class CronCommand extends CommonCommand
                 }
             }
         } else {
-            $this->subCommand($output, $script);
+            $commandDetails = explode(' ', $script, 2);
+            $command        = isset($commandDetails[0]) ? $commandDetails[0] : $script;
+            $allOptions     = isset($commandDetails[1]) ? explode('--', $commandDetails[1]) : array();
+            $options        = array();
+
+            foreach ($allOptions as $option) {
+                $optionDetails = explode('=', $option, 2);
+
+                if (1 < count($optionDetails)) {
+                    $options[$optionDetails[0]] = $optionDetails[1];
+                }
+            }
+
+            $this->subCommand($output, $command, array(), $options);
         }
     }
 }
