@@ -180,10 +180,16 @@ class CronCommand extends CommonCommand
             $options        = array();
 
             foreach ($allOptions as $option) {
+                if ('' === $option) {
+                    continue;
+                }
+
                 $optionDetails = explode('=', $option, 2);
 
                 if (1 < count($optionDetails)) {
                     $options[$optionDetails[0]] = $optionDetails[1];
+                } else {
+                    $options[$optionDetails[0]] = true;
                 }
             }
 
