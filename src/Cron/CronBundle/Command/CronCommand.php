@@ -186,6 +186,11 @@ class CronCommand extends CommonCommand
 
                 $optionDetails = explode('=', $option, 2);
 
+                if (1 === count($optionDetails)) {
+                    // It could also be a space
+                    $optionDetails = explode(' ', $option, 2);
+                }
+
                 if (1 < count($optionDetails)) {
                     $options[$optionDetails[0]] = $optionDetails[1];
                 } else {
