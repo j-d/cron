@@ -52,7 +52,11 @@ class CronCommand extends CommonCommand
                 )
             );
 
-            $this->processCommand($output, $job->getScript());
+            try {
+                $this->processCommand($output, $job->getScript());
+            } catch (\Exception $caught) {
+                // Something went wrong, but continue ... 
+            }
         }
     }
 
