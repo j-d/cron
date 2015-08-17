@@ -10,6 +10,8 @@ use Cron\CronBundle\Entity\Log;
 use Doctrine\ORM\EntityManager;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Process\Process;
+use Symfony\Component\Process\PhpExecutableFinder;
 
 class CronCommand extends CommonCommand
 {
@@ -178,31 +180,21 @@ class CronCommand extends CommonCommand
                 }
             }
         } else {
-            $commandDetails = explode(' ', $script, 2);
-            $command        = isset($commandDetails[0]) ? $commandDetails[0] : $script;
-            $allOptions     = isset($commandDetails[1]) ? explode('--', $commandDetails[1]) : array();
-            $options        = array();
+            $php = new PhpExecutableFinder();
 
-            foreach ($allOptions as $option) {
-                if ('' === $option) {
-                    continue;
-                }
-
-                $optionDetails = explode('=', $option, 2);
-
-                if (1 === count($optionDetails)) {
-                    // It could also be a space
-                    $optionDetails = explode(' ', $option, 2);
-                }
-
-                if (1 < count($optionDetails)) {
-                    $options[$optionDetails[0]] = $optionDetails[1];
-                } else {
-                    $options[$optionDetails[0]] = true;
-                }
-            }
-
-            $this->subCommand($output, $command, array(), $options);
+            $process = new Process(
+                sprintf(
+                    '%s %s %s %s',
+                    'WIN' === strtoupper(substr(PHP_OS, 0, 3))? '' : 'exec',
+                    $php->find(),
+                    $_SERVER['argv'][0],
+                    $script
+                )
+            );
+            $process->setTimeout(0);
+            $process->run();
+            $output->write($process->getOutput());
+            $output->write($process->getErrorOutput());
         }
     }
 }
