@@ -2,18 +2,17 @@
 
 namespace Cron\CronBundle\Command;
 
-use Common\Bundle\DevBundle\Command\CommonCommand;
-
 use Cron\CronBundle\Entity\Job;
 use Cron\CronBundle\Entity\JobRepository;
 use Cron\CronBundle\Entity\Log;
 use Doctrine\ORM\EntityManager;
+use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\PhpExecutableFinder;
 
-class CronCommand extends CommonCommand
+class CronCommand extends ContainerAwareCommand
 {
     protected function configure()
     {
