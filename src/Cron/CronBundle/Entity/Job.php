@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
  * Jobs
  *
  * @ORM\Table(name="cron_jobs", indexes={@ORM\Index(name="link", columns={"link"})})
- * @ORM\Entity
+ * @ORM\Entity(repositoryClass="Cron\CronBundle\Repository\JobRepository")
  */
 class Job
 {
