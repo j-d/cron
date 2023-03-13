@@ -1,21 +1,16 @@
 <?php
 
-namespace Cron\CronBundle\Entity;
+namespace Cron\CronBundle\Repository;
 
-use Doctrine\ORM\EntityRepository;
-use Doctrine\Common\Persistence\ObjectManager;
-use Doctrine\ORM\EntityManager;
+use Cron\CronBundle\Entity\Job;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 
-class JobRepository extends EntityRepository
+class JobRepository extends ServiceEntityRepository
 {
-    /**
-     * @param EntityManager|ObjectManager $em The EntityManager to use.
-     */
-    function __construct($em)
+    function __construct(ManagerRegistry $registry)
     {
-        $metadata = $em->getClassMetadata('CronBundle:Job');
-
-        parent::__construct($em, $metadata);
+        parent::__construct($registry, Job::class);
     }
 
     /**

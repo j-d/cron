@@ -3,7 +3,6 @@
 namespace Cron\CronBundle\Command;
 
 use Cron\CronBundle\Entity\Job;
-use Cron\CronBundle\Entity\JobRepository;
 use Cron\CronBundle\Entity\Log;
 use Doctrine\ORM\EntityManager;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
@@ -26,7 +25,7 @@ class CronCommand extends ContainerAwareCommand
         /** @var EntityManager $em */
         $em = $this->getContainer()->get('doctrine')->getManager();
 
-        $jobRepository = new JobRepository($em);
+        $jobRepository = $em->getRepository(Job::class);
 
         $this->removeExpiredJobs();
 
@@ -128,7 +127,7 @@ class CronCommand extends ContainerAwareCommand
         /** @var EntityManager $em */
         $em = $this->getContainer()->get('doctrine')->getManager();
 
-        $jobRepository = new JobRepository($em);
+        $jobRepository = $em->getRepository(Job::class);
 
         $expiredJobs = $jobRepository->findExpiredJobs();
 
