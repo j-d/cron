@@ -4,15 +4,27 @@ namespace Cron\CronBundle\Command;
 
 use Cron\CronBundle\Entity\Job;
 use Cron\CronBundle\Entity\Log;
-use Doctrine\ORM\EntityManager;
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\PhpExecutableFinder;
 
-class CronCommand extends ContainerAwareCommand
+class CronCommand extends Command
 {
+    /**
+     * @var EntityManagerInterface
+     */
+    private $em;
+
+    public function __construct(EntityManagerInterface $em)
+    {
+        $this->em = $em;
+
+        parent::__construct();
+    }
+
     protected function configure()
     {
         $this
@@ -22,27 +34,24 @@ class CronCommand extends ContainerAwareCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        /** @var EntityManager $em */
-        $em = $this->getContainer()->get('doctrine')->getManager();
-
-        $jobRepository = $em->getRepository(Job::class);
+        $jobRepository = $this->em->getRepository(Job::class);
 
         $this->removeExpiredJobs();
 
         $nextJobs = $jobRepository->findNextJobs(5);
 
         foreach ($nextJobs as $job) {
-            $em->getConnection()->beginTransaction();
+            $this->em->getConnection()->beginTransaction();
 
             if (null !== $job->getRepeat()) {
-                $em->persist($this->getRepeatedJob($job));
+                $this->em->persist($this->getRepeatedJob($job));
             }
 
-            $em->persist(new Log($job));
-            $em->remove($job);
-            $em->flush();
+            $this->em->persist(new Log($job));
+            $this->em->remove($job);
+            $this->em->flush();
 
-            $em->getConnection()->commit();
+            $this->em->getConnection()->commit();
 
             $this->addLogLine(
                 sprintf(
@@ -58,6 +67,8 @@ class CronCommand extends ContainerAwareCommand
                 // Something went wrong, but continue ... 
             }
         }
+
+        return 0;
     }
 
     /**
@@ -124,20 +135,17 @@ class CronCommand extends ContainerAwareCommand
      */
     private function removeExpiredJobs()
     {
-        /** @var EntityManager $em */
-        $em = $this->getContainer()->get('doctrine')->getManager();
-
-        $jobRepository = $em->getRepository(Job::class);
+        $jobRepository = $this->em->getRepository(Job::class);
 
         $expiredJobs = $jobRepository->findExpiredJobs();
 
         foreach ($expiredJobs as $expiredJob) {
             if (null !== $expiredJob->getRepeat()) {
-                $em->persist(new Log($expiredJob, true));
-                $em->persist($this->getRepeatedJob($expiredJob));
+                $this->em->persist(new Log($expiredJob, true));
+                $this->em->persist($this->getRepeatedJob($expiredJob));
             }
 
-            $em->remove($expiredJob);
+            $this->em->remove($expiredJob);
 
             $this->addLogLine(
                 sprintf(
@@ -149,7 +157,7 @@ class CronCommand extends ContainerAwareCommand
             );
         }
 
-        $em->flush();
+        $this->em->flush();
     }
 
     /**
